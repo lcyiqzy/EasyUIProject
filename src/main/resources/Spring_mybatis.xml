@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="comboPooledDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="user" value="root" />
+		<property name="password" value="123456" />
+		<property name="jdbcUrl" value="jdbc:mysql://localhost:3306/exam0325" />
+		<property name="driverClass" value="com.mysql.jdbc.Driver" />
+	</bean>
+
+	<bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!--配置mybatis的配置文件位置 -->
+		<property name="configLocation" value="classpath:myBatis/mybatis_config.xml"></property>
+		<!-- 配置数据源 -->
+		<property name="dataSource" ref="comboPooledDataSource"></property>
+		<!-- 指定所有mapperxml的位置 -->
+		<property name="mapperLocations" value="classpath:myBatis/mapper/*.xml"></property>
+
+	</bean>
+	
+	<!-- 将所有mapper接口的实现类自动加入到ioc容器中 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+	<property name="basePackage" value="osbel.dao"></property>
+	</bean>
+
+</beans>

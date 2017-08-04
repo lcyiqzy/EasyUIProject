@@ -1,0 +1,207 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Insert title here</title>
+
+<!-- 第一部分：样式文件 -->
+<!-- 1.默认主题文件 -->
+<link rel="stylesheet" type="text/css"
+	href="/osbel-ssm/css/themes/default/easyui.css" />
+<!-- 2.图标的样式文件 -->
+<link rel="stylesheet" type="text/css"
+	href="/osbel-ssm/css/themes/icon.css" />
+<!-- 第二部分：JavaScript库文件 -->
+<!-- 1.jQuery的库文件——一定要比EasyUI的库文件先引入 -->
+<script type="text/javascript" src="/osbel-ssm/jQuery/jquery.min.js"></script>
+<!-- 2.EasyUI的主体库文件 -->
+<script type="text/javascript"
+	src="/osbel-ssm/jQuery/jquery.easyui.min.js"></script>
+<!-- 3.本地化文件 -->
+<script type="text/javascript"
+	src="/osbel-ssm/jQuery/easyui-lang-zh_CN.js"></script>
+
+<script type="text/javascript">
+	$(function(){
+		
+		$("#formSubmitBtn").linkbutton({
+			onClick:function(){
+			$("#phoneForm").form("submit");
+			$("#win").window("close");
+			}
+		});
+		
+		$("#win").window({
+			onClose : function() {
+				$("#phoneForm").form("clear");
+			}
+		});
+
+		$("#phoneForm").form({
+			success : function() {
+				$("#phoneDataGridWithPage").datagrid("reload");
+			}
+		});
+		
+		$("#phoneDataGridWithPage").datagrid(
+				{
+					url : "/osbel-ssm/getPageInfo",
+					fit : true,
+					pagination : true,
+					columns : [ [ {
+						field : 'phoneId',
+						title : '手机id',
+						width : 100
+					}, {
+						field : 'phoneName',
+						title : '手机名',
+						width : 100
+					}, {
+						field : 'phonePrice',
+						title : '手机价格',
+						width : 100,
+					},
+					{
+						field : 'phoneColor',
+						title : '手机颜色',
+						width : 100,
+					}] ],
+					toolbar : [
+							{
+								iconCls : 'icon-add',
+								text : '添加手机信息',
+								handler : function() {
+									$("#win").window("open");
+									$("#phoneForm").form({
+										url : "/osbel-ssm/savePhone"
+									});
+								}
+							},
+							{
+								iconCls : 'icon-remove',
+								text : '删除手机信息',
+								handler : function() {
+									
+									var phoneId="";
+									
+									var selectedRow = $("#phoneDataGridWithPage")
+											.datagrid("getSelections");
+									console.log(selectedRow);
+
+									if (selectedRow.length == 0) {
+
+										$.messager.alert("删除操作",
+												"请选中项目后执行删除操作", "info");
+
+									} else {
+									
+										$.messager.confirm("确认删除",
+												"请确认是否要删除？", function(result){
+											
+											if(result){
+											 	$.each(selectedRow, function() {
+											 		
+													phoneId += this.phoneId+",";
+												}); 
+												 
+											 	$.post("/osbel-ssm/delPhone/"+phoneId,function(msg){
+											 		$.messager.alert("删除操作",
+															"删除成功！", "info");
+											 		$("#phoneDataGridWithPage").datagrid("reload");
+											 		
+											 	});
+												
+											}else{
+												$.messager.alert("取消删除",
+														"已取消删除操作", "info");
+											}
+										});
+									}
+								}
+							}, {
+								iconCls : 'icon-edit',
+								text : '修改手机信息',
+					 			handler : function() {
+								
+								var selectedRow = $("#phoneDataGridWithPage").datagrid("getSelected");
+
+								if(selectedRow==null){
+									$.messager.alert("修改操作",
+											"请选中员工后执行修改操作", "info");
+								}
+								else{
+									
+									$("#win").window("open");
+									
+									$("#phoneForm").form({url:"/osbel-ssm/editPhone/"}).form("load",selectedRow);
+									
+								}
+							}  
+							} ]
+				});
+	});
+	
+	
+	
+	</script>
+</head>
+
+
+
+<body class="easyui-layout">
+	<div data-options="region:'north',title:'North Title',split:true"
+		style="height: 100px;"></div>
+
+	<div data-options="region:'south',title:'South Title',split:true"
+		style="height: 100px;"></div>
+
+	<div data-options="region:'west',title:'West',split:true"
+		style="width: 100px;">
+		<div id="aa" class="easyui-accordion" data-options="fit:true">
+			<div title="Title1" data-options="iconCls:'icon-save'"
+				style="overflow: auto; padding: 0px;">
+
+				<a id="openTabOneBtn" class="easyui-linkbutton" style="width: 100%">查看手机信息</a>
+
+			</div>
+			<div title="Title2"
+				data-options="iconCls:'icon-reload',selected:true"
+				style="padding: 10px;">content2</div>
+			<div title="Title3">content3</div>
+		</div>
+	</div>
+
+	<div data-options="region:'center',title:'center title'"
+		style="padding: 5px; background: #eee;">
+
+		<div id="tt" class="easyui-tabs" data-options="fit:true">
+
+			<div title="Tab1">
+
+				<table id="phoneDataGridWithPage"></table>
+
+			</div>
+
+		</div>
+		
+	</div>
+
+	<div id="win" class="easyui-window" title="My Window"
+		style="width: 300px; height: 250px; text-align: center; padding-top: 30px;"
+		data-options="closed:true,iconCls:'icon-save',modal:true">
+
+		<form id="phoneForm" class="easyui-form" method="post">
+			手机编号：<input type="text" name=phoneId /><br /> <br /> 手机品牌：<input
+				type="text" name="phoneName" /><br /> <br /> 
+				手机价格：<input id="priceinput" type="text" placeholder="此处只能输入数字" onkeyup="this.value=this.value.replace(/[^\d]/g,'') " onafterpaste="this.value=this.value.replace(/[^\d]/g,'') "  name="phonePrice" /> 
+				<span class="errorinfo" style="color: red"></span><br /><br /> 
+				手机颜色：<input type="text"  name="phoneColor" /> <br /> 
+				<a id="formSubmitBtn" class="easyui-linkbutton" data-options="iconCls:'icon-save'">保存</a>
+		</form>
+
+	</div>
+
+</body>
+
+
+</html>
